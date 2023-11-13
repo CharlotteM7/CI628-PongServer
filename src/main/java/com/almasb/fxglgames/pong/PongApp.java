@@ -38,6 +38,9 @@ import com.almasb.fxgl.net.*;
 import com.almasb.fxgl.physics.CollisionHandler;
 import com.almasb.fxgl.physics.HitBox;
 import com.almasb.fxgl.ui.UI;
+import com.almasb.fxglgames.pong.PongApp.MessageReaderS;
+import com.almasb.fxglgames.pong.PongApp.MessageWriterS;
+
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
@@ -73,8 +76,13 @@ public class PongApp extends GameApplication implements MessageHandler<String> {
     private Entity player1;
     private Entity player2;
     private Entity ball;
+    private Entity powerUp;
     private BatComponent player1Bat;
     private BatComponent player2Bat;
+    
+    private boolean powerUpActive = false;
+
+    
 
     private Server<String> server;
 
@@ -189,7 +197,7 @@ public class PongApp extends GameApplication implements MessageHandler<String> {
         CollisionHandler ballBatHandler = new CollisionHandler(EntityType.BALL, EntityType.PLAYER_BAT) {
             @Override
             protected void onCollisionBegin(Entity a, Entity bat) {
-                playHitAnimation(bat);
+            
 
                 server.broadcast(bat == player1 ? BALL_HIT_BAT1 : BALL_HIT_BAT2);
             }
@@ -197,6 +205,25 @@ public class PongApp extends GameApplication implements MessageHandler<String> {
 
         getPhysicsWorld().addCollisionHandler(ballBatHandler);
         getPhysicsWorld().addCollisionHandler(ballBatHandler.copyFor(EntityType.BALL, EntityType.ENEMY_BAT));
+
+        CollisionHandler ballpowerUpHandler = new CollisionHandler(EntityType.BALL, EntityType.POWER_UP) {
+            @Override
+            protected void onCollisionBegin(Entity ball, Entity powerUp) {
+                powerUp.removeFromWorld();
+                powerUpActive = false; 
+                BallComponent ballComponent = ball.getComponent(BallComponent.class);
+                ballComponent.slowDown();
+                server.broadcast(BALL_HIT_powerUp);
+        
+        }
+            
+        };
+        getPhysicsWorld().addCollisionHandler(ballpowerUpHandler);
+        
+        
+        
+        
+      
     }
 
     @Override
@@ -210,14 +237,29 @@ public class PongApp extends GameApplication implements MessageHandler<String> {
         getGameScene().addUI(ui);
     }
 
+
+
+
+
     @Override
     protected void onUpdate(double tpf) {
         if (!server.getConnections().isEmpty()) {
-            var message = "GAME_DATA," + player1.getY() + "," + player2.getY() + "," + ball.getX() + "," + ball.getY();
+            var message = "GAME_DATA," + player1.getY() + "," + player2.getY() + "," + ball.getX() + "," + ball.getY() + "," + getPowerUpData();
 
             server.broadcast(message);
         }
     }
+
+
+    private String getPowerUpData() {
+        if (powerUp.isActive()) {
+            return powerUp.getX() + "," + powerUp.getY() + ",1"; // 1 indicates active
+        } else {
+            return "0,0,0"; // 0,0,0 indicates inactive (0 for X, Y, and active status)
+        }
+    }
+    
+
 
     private void initScreenBounds() {
         Entity walls = entityBuilder()
@@ -229,9 +271,11 @@ public class PongApp extends GameApplication implements MessageHandler<String> {
     }
 
     private void initGameObjects() {
-        ball = spawn("ball", getAppWidth() / 2 - 5, getAppHeight() / 2 - 5);
+        ball = spawn("ball", getAppWidth() / 2 - 30, getAppHeight() / 2 - 30);
         player1 = spawn("bat", new SpawnData(getAppWidth() / 4, getAppHeight() / 2 - 30).put("isPlayer", true));
         player2 = spawn("bat", new SpawnData(3 * getAppWidth() / 4 - 20, getAppHeight() / 2 - 30).put("isPlayer", false));
+        powerUp = spawn("powerUp", new SpawnData(getAppWidth() / 2, getAppHeight()/2 ));
+        powerUpActive = true;
 
         player1Bat = player1.getComponent(BatComponent.class);
         player2Bat = player2.getComponent(BatComponent.class);
