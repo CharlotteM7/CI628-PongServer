@@ -30,5 +30,5 @@ package com.almasb.fxglgames.pong;
  * @author Almas Baimagambetov (AlmasB) (almaslvl@gmail.com)
  */
 public enum  EntityType {
-    PLAYER_BAT, ENEMY_BAT, BALL, WALL
+    PLAYER_BAT, ENEMY_BAT, BALL, WALL, POWER_UP,
 }
