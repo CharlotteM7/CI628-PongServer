@@ -102,4 +102,19 @@ public class PongFactory implements EntityFactory {
                 .with(new BatComponent())
                 .build();
     }
+
+
+      @Spawns("powerUp") 
+    public Entity powerUp(SpawnData data) {
+        
+        PhysicsComponent physics = new PhysicsComponent();
+        physics.setBodyType(BodyType.STATIC);
+
+        return entityBuilder(data)
+                .type(EntityType.POWER_UP)
+                .viewWithBBox(new Rectangle(40, 40, Color.RED))
+                .with(new CollidableComponent(true))
+                .with(physics)
+                .build();
+    }
 }
