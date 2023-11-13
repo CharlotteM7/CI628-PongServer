@@ -29,7 +29,7 @@ package com.almasb.fxglgames.pong;
 import com.almasb.fxgl.entity.component.Component;
 import com.almasb.fxgl.physics.PhysicsComponent;
 import javafx.geometry.Point2D;
-
+import javafx.util.Duration;
 import static com.almasb.fxgl.dsl.FXGL.*;
 import static java.lang.Math.abs;
 import static java.lang.Math.signum;
@@ -39,7 +39,10 @@ import static java.lang.Math.signum;
  */
 public class BallComponent extends Component {
 
+    
+
     private PhysicsComponent physics;
+    private boolean isSlowedDown = false;
 
     @Override
     public void onUpdate(double tpf) {
@@ -48,6 +51,7 @@ public class BallComponent extends Component {
     }
 
     private void limitVelocity() {
+        if (!isSlowedDown){
         // we don't want the ball to move too slow in X direction
         if (abs(physics.getVelocityX()) < 5 * 60) {
             physics.setVelocityX(signum(physics.getVelocityX()) * 5 * 60);
@@ -57,6 +61,7 @@ public class BallComponent extends Component {
         if (abs(physics.getVelocityY()) > 5 * 60 * 2) {
             physics.setVelocityY(signum(physics.getVelocityY()) * 5 * 60);
         }
+    }
     }
 
     // this is a hack:
@@ -69,4 +74,20 @@ public class BallComponent extends Component {
             ));
         }
     }
+
+    public void slowDown() {
+        if (!isSlowedDown) {
+            isSlowedDown = true;
+            // Reduce the velocity by half, for example
+            physics.setVelocityX(physics.getVelocityX() * 0.25);
+            physics.setVelocityY(physics.getVelocityY() * 0.25);
+
+            // Restore normal velocity handling after 5 seconds
+            getGameTimer().runOnceAfter(() -> {
+                isSlowedDown = false;
+            }, Duration.seconds(5));
+        }
+    }
+
+    
 }
