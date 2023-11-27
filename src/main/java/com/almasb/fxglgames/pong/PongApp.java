@@ -75,14 +75,14 @@ public class PongApp extends GameApplication implements MessageHandler<String> {
 
     private Entity player1;
     private Entity player2;
+    private Entity player3;
     private Entity ball;
     private Entity powerUp;
     private BatComponent player1Bat;
     private BatComponent player2Bat;
-    
-    private boolean powerUpActive = false;
+    private BatComponent player3Bat;
+    private boolean powerUpActive;
 
-    
 
     private Server<String> server;
 
@@ -135,12 +135,39 @@ public class PongApp extends GameApplication implements MessageHandler<String> {
                 player2Bat.stop();
             }
         }, KeyCode.K);
+
+                getInput().addAction(new UserAction("Up3") {
+            @Override
+            protected void onAction() {
+                player3Bat.up();
+            }
+
+            @Override
+            protected void onActionEnd() {
+                player3Bat.stop();
+            }
+        }, KeyCode.T);
+
+        getInput().addAction(new UserAction("Down3") {
+            @Override
+            protected void onAction() {
+                player3Bat.down();
+            }
+
+            @Override
+            protected void onActionEnd() {
+                player3Bat.stop();
+            }
+        }, KeyCode.G);
+
+
     }
 
     @Override
     protected void initGameVars(Map<String, Object> vars) {
         vars.put("player1score", 0);
         vars.put("player2score", 0);
+        vars.put("player3score", 0);
     }
 
     @Override
@@ -171,40 +198,63 @@ public class PongApp extends GameApplication implements MessageHandler<String> {
 
         getPhysicsWorld().addCollisionHandler(new CollisionHandler(EntityType.BALL, EntityType.WALL) {
             @Override
-            protected void onHitBoxTrigger(Entity a, Entity b, HitBox boxA, HitBox boxB) {
-                if (boxB.getName().equals("LEFT")) {
-                    inc("player2score", +1);
-
-                    server.broadcast("SCORES," + geti("player1score") + "," + geti("player2score"));
-
-                    server.broadcast(HIT_WALL_LEFT);
-                } else if (boxB.getName().equals("RIGHT")) {
-                    inc("player1score", +1);
-
-                    server.broadcast("SCORES," + geti("player1score") + "," + geti("player2score"));
-
-                    server.broadcast(HIT_WALL_RIGHT);
-                } else if (boxB.getName().equals("TOP")) {
-                    server.broadcast(HIT_WALL_UP);
-                } else if (boxB.getName().equals("BOT")) {
-                    server.broadcast(HIT_WALL_DOWN);
+            protected void onHitBoxTrigger(Entity ball, Entity wall, HitBox boxA, HitBox boxB) {
+                BallComponent ballComp = ball.getComponent(BallComponent.class);
+                Entity lastBatHit = ballComp.getLastBatHit();
+        
+                if (lastBatHit != null) {
+                    // Check which player's bat it was and increment their score
+                    if (lastBatHit == player1) {
+                        inc("player1score", +1);
+                    } else if (lastBatHit == player2) {
+                        inc("player2score", +1);
+                    } else if (lastBatHit == player3) {
+                        inc("player3score", +1);
+                    }
+                    //System.out.println("Ball hit the wall. Last bat hit: " + (lastBatHit == player1 ? "Player 1" : lastBatHit == player2 ? "Player 2" : "Player 3"));
+        
+                    // Broadcast updated scores
+                    server.broadcast("SCORES," + geti("player1score") + "," + geti("player2score") + "," + geti("player3score"));
+        
+                    // Reset last bat hit
+                    ballComp.setLastBatHit(null);
                 }
-
+        
+                if (boxB.getName().equals("LEFT") || boxB.getName().equals("RIGHT")) {
+                   
+                } else if (boxB.getName().equals("TOP") || boxB.getName().equals("BOT")) {
+                  
+                }
+        
+                // Additional effects, like screen shake
                 getGameScene().getViewport().shakeTranslational(5);
             }
         });
+        
 
-        CollisionHandler ballBatHandler = new CollisionHandler(EntityType.BALL, EntityType.PLAYER_BAT) {
-            @Override
-            protected void onCollisionBegin(Entity a, Entity bat) {
-            
 
-                server.broadcast(bat == player1 ? BALL_HIT_BAT1 : BALL_HIT_BAT2);
+
+       CollisionHandler ballBatHandler = new CollisionHandler(EntityType.BALL, EntityType.PLAYER_BAT) {
+    @Override
+    protected void onCollisionBegin(Entity ball, Entity bat) {
+        BallComponent ballComp = ball.getComponent(BallComponent.class);
+        ballComp.setLastBatHit(bat);
+        //System.out.println("Ball hit by bat. Bat ID: " + (bat == player1 ? "Player 1" : bat == player2 ? "Player 2" : "Player 3"));
+                if (bat == player1) {
+                    server.broadcast(BALL_HIT_BAT1);
+                } else if (bat == player2) {
+                    server.broadcast(BALL_HIT_BAT2);
+                } else if (bat == player3) {
+                    server.broadcast(BALL_HIT_BAT3);
+                }
             }
         };
+        
 
         getPhysicsWorld().addCollisionHandler(ballBatHandler);
         getPhysicsWorld().addCollisionHandler(ballBatHandler.copyFor(EntityType.BALL, EntityType.ENEMY_BAT));
+        getPhysicsWorld().addCollisionHandler(ballBatHandler.copyFor(EntityType.BALL, EntityType.EXTRA_BAT));
+
 
         CollisionHandler ballpowerUpHandler = new CollisionHandler(EntityType.BALL, EntityType.POWER_UP) {
             @Override
@@ -221,8 +271,6 @@ public class PongApp extends GameApplication implements MessageHandler<String> {
         getPhysicsWorld().addCollisionHandler(ballpowerUpHandler);
         
         
-        
-        
       
     }
 
@@ -230,24 +278,26 @@ public class PongApp extends GameApplication implements MessageHandler<String> {
     protected void initUI() {
         MainUIController controller = new MainUIController();
         UI ui = getAssetLoader().loadUI("main.fxml", controller);
-
+       
         controller.getLabelScorePlayer().textProperty().bind(getip("player1score").asString());
         controller.getLabelScoreEnemy().textProperty().bind(getip("player2score").asString());
+        controller.getLabelScoreExtra().textProperty().bind(getip("player3score").asString());
 
+    
         getGameScene().addUI(ui);
     }
-
-
+    
 
 
 
     @Override
     protected void onUpdate(double tpf) {
         if (!server.getConnections().isEmpty()) {
-            var message = "GAME_DATA," + player1.getY() + "," + player2.getY() + "," + ball.getX() + "," + ball.getY() + "," + getPowerUpData();
-
+            var message = "GAME_DATA," + player1.getY() + "," + player2.getY() + "," + player3.getY() + "," + ball.getX() + "," + ball.getY() + "," + getPowerUpData();
             server.broadcast(message);
         }
+
+   
     }
 
 
@@ -260,7 +310,6 @@ public class PongApp extends GameApplication implements MessageHandler<String> {
     }
     
 
-
     private void initScreenBounds() {
         Entity walls = entityBuilder()
                 .type(EntityType.WALL)
@@ -270,16 +319,19 @@ public class PongApp extends GameApplication implements MessageHandler<String> {
         getGameWorld().addEntity(walls);
     }
 
-    private void initGameObjects() {
-        ball = spawn("ball", getAppWidth() / 2 - 30, getAppHeight() / 2 - 30);
-        player1 = spawn("bat", new SpawnData(getAppWidth() / 4, getAppHeight() / 2 - 30).put("isPlayer", true));
-        player2 = spawn("bat", new SpawnData(3 * getAppWidth() / 4 - 20, getAppHeight() / 2 - 30).put("isPlayer", false));
-        powerUp = spawn("powerUp", new SpawnData(getAppWidth() / 2, getAppHeight()/2 ));
-        powerUpActive = true;
+private void initGameObjects() {
+    ball = spawn("ball", getAppWidth() / 2 - 30, getAppHeight() / 2 - 30);
+    player1 = spawn("bat", new SpawnData(getAppWidth() / 4, getAppHeight() / 2 - 30).put("playerId", 1));
+    player2 = spawn("bat", new SpawnData(3 * getAppWidth() / 4 - 20, getAppHeight() / 2 - 30).put("playerId", 2));
+    player3 = spawn("bat", new SpawnData(getAppWidth() / 2 - 50, getAppHeight() / 2 - 10).put("playerId", 3));
+    powerUp = spawn("powerUp", new SpawnData(getAppWidth() / 2, getAppHeight() / 2));
+    powerUpActive = true;
 
-        player1Bat = player1.getComponent(BatComponent.class);
-        player2Bat = player2.getComponent(BatComponent.class);
-    }
+    player1Bat = player1.getComponent(BatComponent.class);
+    player2Bat = player2.getComponent(BatComponent.class);
+    player3Bat = player3.getComponent(BatComponent.class);
+}
+
 
     private void playHitAnimation(Entity bat) {
         animationBuilder()
