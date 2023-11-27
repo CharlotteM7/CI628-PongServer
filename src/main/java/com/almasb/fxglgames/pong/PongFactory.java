@@ -89,14 +89,34 @@ public class PongFactory implements EntityFactory {
 
     @Spawns("bat")
     public Entity newBat(SpawnData data) {
-        boolean isPlayer = data.get("isPlayer");
-
+        int playerId = data.get("playerId");
+    
         PhysicsComponent physics = new PhysicsComponent();
         physics.setBodyType(BodyType.KINEMATIC);
 
+        Color batColor;
+    
+        EntityType entityType;
+        switch (playerId) {
+            case 1:
+                entityType = EntityType.PLAYER_BAT;
+                batColor = Color.RED;
+                break;
+            case 2:
+                entityType = EntityType.ENEMY_BAT;
+                batColor = Color.BLUE;
+                break;
+            case 3:
+                entityType = EntityType.EXTRA_BAT;
+                batColor = Color.GREEN;
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown player ID: " + playerId);
+        }
+    
         return entityBuilder(data)
-                .type(isPlayer ? EntityType.PLAYER_BAT : EntityType.ENEMY_BAT)
-                .viewWithBBox(new Rectangle(20, 60, Color.LIGHTGRAY))
+                .type(entityType)
+                .viewWithBBox(new Rectangle(20, 60, batColor))
                 .with(new CollidableComponent(true))
                 .with(physics)
                 .with(new BatComponent())
@@ -104,7 +124,8 @@ public class PongFactory implements EntityFactory {
     }
 
 
-      @Spawns("powerUp") 
+
+    @Spawns("powerUp") 
     public Entity powerUp(SpawnData data) {
         
         PhysicsComponent physics = new PhysicsComponent();
@@ -117,4 +138,6 @@ public class PongFactory implements EntityFactory {
                 .with(physics)
                 .build();
     }
+    
+    
 }
