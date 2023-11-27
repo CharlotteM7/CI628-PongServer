@@ -13,6 +13,7 @@ public class NetworkMessages {
 
     public static final String BALL_HIT_BAT1 = "BALL_HIT_BAT1";
     public static final String BALL_HIT_BAT2 = "BALL_HIT_BAT2";
+    public static final String BALL_HIT_BAT3 = "BALL_HIT_BAT3";
 
     public static final String BALL_HIT_powerUp = "BALL_HIT_powerUp";
 
