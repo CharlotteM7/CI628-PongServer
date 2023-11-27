@@ -44,6 +44,9 @@ public class MainUIController implements UIController {
     @FXML
     private Label labelScoreEnemy;
 
+    @FXML
+    private Label labelScoreExtra;
+
     public Label getLabelScoreEnemy() {
         return labelScoreEnemy;
     }
@@ -52,14 +55,26 @@ public class MainUIController implements UIController {
         return labelScorePlayer;
     }
 
+     public Label getLabelScoreExtra() {
+        return labelScoreExtra;
+    }
+
     @Override
     public void init() {
         labelScorePlayer.setFont(FXGL.getUIFactory().newFont(72));
         labelScoreEnemy.setFont(FXGL.getUIFactory().newFont(72));
+         labelScoreExtra.setFont(FXGL.getUIFactory().newFont(72));
 
         labelScoreEnemy.layoutBoundsProperty().addListener((observable, oldValue, newBounds) -> {
             double width = newBounds.getWidth();
             labelScoreEnemy.setTranslateX(800 - 100 - width);
+           
+        });
+
+               labelScoreExtra.layoutBoundsProperty().addListener((observable, oldValue, newBounds) -> {
+            double width = newBounds.getWidth();
+            labelScoreExtra.setTranslateX(800 - 500 - width);
+           
         });
 
         labelScorePlayer.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -68,6 +83,9 @@ public class MainUIController implements UIController {
 
         labelScoreEnemy.textProperty().addListener((observable, oldValue, newValue) -> {
             animateLabel(labelScoreEnemy);
+        });
+         labelScoreExtra.textProperty().addListener((observable, oldValue, newValue) -> {
+            animateLabel(labelScoreExtra);
         });
     }
 
