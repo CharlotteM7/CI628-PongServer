@@ -25,7 +25,7 @@
  */
 
 package com.almasb.fxglgames.pong;
-
+import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.entity.component.Component;
 import com.almasb.fxgl.physics.PhysicsComponent;
 import javafx.geometry.Point2D;
@@ -40,7 +40,7 @@ import static java.lang.Math.signum;
 public class BallComponent extends Component {
 
     
-
+    private Entity lastBatHit;
     private PhysicsComponent physics;
     private boolean isSlowedDown = false;
 
@@ -48,6 +48,14 @@ public class BallComponent extends Component {
     public void onUpdate(double tpf) {
         limitVelocity();
         checkOffscreen();
+    }
+
+    public void setLastBatHit(Entity bat) {
+        this.lastBatHit = bat;
+    }
+
+    public Entity getLastBatHit() {
+        return lastBatHit;
     }
 
     private void limitVelocity() {
