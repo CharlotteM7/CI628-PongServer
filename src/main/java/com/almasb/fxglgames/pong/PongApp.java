@@ -136,22 +136,22 @@ public class PongApp extends GameApplication implements MessageHandler<String> {
             }
         }, KeyCode.K);
 
-                getInput().addAction(new UserAction("Up3") {
+            getInput().addAction(new UserAction("Left3") {
             @Override
             protected void onAction() {
-                player3Bat.up();
+                player3Bat.left();
             }
 
             @Override
             protected void onActionEnd() {
                 player3Bat.stop();
             }
-        }, KeyCode.T);
+        }, KeyCode.F);
 
-        getInput().addAction(new UserAction("Down3") {
+        getInput().addAction(new UserAction("Right3") {
             @Override
             protected void onAction() {
-                player3Bat.down();
+                player3Bat.right();
             }
 
             @Override
@@ -278,12 +278,11 @@ public class PongApp extends GameApplication implements MessageHandler<String> {
     protected void initUI() {
         MainUIController controller = new MainUIController();
         UI ui = getAssetLoader().loadUI("main.fxml", controller);
-       
+
         controller.getLabelScorePlayer().textProperty().bind(getip("player1score").asString());
         controller.getLabelScoreEnemy().textProperty().bind(getip("player2score").asString());
         controller.getLabelScoreExtra().textProperty().bind(getip("player3score").asString());
 
-    
         getGameScene().addUI(ui);
     }
     
@@ -293,7 +292,7 @@ public class PongApp extends GameApplication implements MessageHandler<String> {
     @Override
     protected void onUpdate(double tpf) {
         if (!server.getConnections().isEmpty()) {
-            var message = "GAME_DATA," + player1.getY() + "," + player2.getY() + "," + player3.getY() + "," + ball.getX() + "," + ball.getY() + "," + getPowerUpData();
+            var message = "GAME_DATA," + player1.getY() + "," + player2.getY() + "," + player3.getX() + "," + ball.getX() + "," + ball.getY() + "," + getPowerUpData();
             server.broadcast(message);
         }
 
@@ -323,7 +322,7 @@ private void initGameObjects() {
     ball = spawn("ball", getAppWidth() / 2 - 30, getAppHeight() / 2 - 30);
     player1 = spawn("bat", new SpawnData(getAppWidth() / 4, getAppHeight() / 2 - 30).put("playerId", 1));
     player2 = spawn("bat", new SpawnData(3 * getAppWidth() / 4 - 20, getAppHeight() / 2 - 30).put("playerId", 2));
-    player3 = spawn("bat", new SpawnData(getAppWidth() / 2 - 50, getAppHeight() / 2 - 10).put("playerId", 3));
+    player3 = spawn("bat", new SpawnData(getAppWidth() / 2 - 60 / 2, getAppHeight() - 50 - 30).put("playerId", 3));
     powerUp = spawn("powerUp", new SpawnData(getAppWidth() / 2, getAppHeight() / 2));
     powerUpActive = true;
 
@@ -347,15 +346,22 @@ private void initGameObjects() {
     @Override
     public void onReceive(Connection<String> connection, String message) {
         var tokens = message.split(",");
-
+    
         Arrays.stream(tokens).skip(1).forEach(key -> {
             if (key.endsWith("_DOWN")) {
                 getInput().mockKeyPress(KeyCode.valueOf(key.substring(0, 1)));
             } else if (key.endsWith("_UP")) {
                 getInput().mockKeyRelease(KeyCode.valueOf(key.substring(0, 1)));
-            }
+            } 
         });
     }
+    
+        
+            
+            
+    
+    
+
 
     static class MessageWriterS implements TCPMessageWriter<String> {
 
