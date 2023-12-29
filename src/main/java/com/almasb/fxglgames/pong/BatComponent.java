@@ -53,7 +53,36 @@ public class BatComponent extends Component {
             stop();
     }
 
+
     public void stop() {
         physics.setLinearVelocity(0, 0);
+       
     }
+
+
+    public void left() {
+        // Check if the bat is not too far left (adjust the boundary as needed)
+        if (entity.getX() > 0) {
+            physics.setVelocityX(-BAT_SPEED); // Move left
+        } else {
+            stop(); // Stop if it's at the edge
+        }
+    }
+    
+    public void right() {
+        // Check if the bat is not too far right (adjust the boundary as needed)
+        if (entity.getRightX() < FXGL.getAppWidth()) {
+            physics.setVelocityX(BAT_SPEED); // Move right
+        } else {
+            stop(); // Stop if it's at the edge
+        }
+    }
+   
+    
+
+
+
 }
+
+
+
