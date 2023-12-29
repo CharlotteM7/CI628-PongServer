@@ -101,26 +101,41 @@ public class PongFactory implements EntityFactory {
             case 1:
                 entityType = EntityType.PLAYER_BAT;
                 batColor = Color.RED;
-                break;
-            case 2:
-                entityType = EntityType.ENEMY_BAT;
-                batColor = Color.BLUE;
-                break;
-            case 3:
-                entityType = EntityType.EXTRA_BAT;
-                batColor = Color.GREEN;
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown player ID: " + playerId);
-        }
-    
-        return entityBuilder(data)
+                 return entityBuilder(data)
                 .type(entityType)
-                .viewWithBBox(new Rectangle(20, 60, batColor))
+                .viewWithBBox(new Rectangle(20, 100, batColor))
                 .with(new CollidableComponent(true))
                 .with(physics)
                 .with(new BatComponent())
                 .build();
+                
+            case 2:
+                entityType = EntityType.ENEMY_BAT;
+                batColor = Color.BLUE;
+                 return entityBuilder(data)
+                .type(entityType)
+                .viewWithBBox(new Rectangle(20, 100, batColor))
+                .with(new CollidableComponent(true))
+                .with(physics)
+                .with(new BatComponent())
+                .build();
+             
+            case 3:
+                entityType = EntityType.EXTRA_BAT;
+                batColor = Color.GREEN;
+                return entityBuilder(data)
+                .type(entityType)
+                .viewWithBBox(new Rectangle(100, 20, batColor)) // Width 60, Height 20
+                   .with(new CollidableComponent(true))
+                .with(physics)
+                .with(new BatComponent())
+                .build();
+             
+            default:
+                throw new IllegalArgumentException("Unknown player ID: " + playerId);
+        }
+    
+  
     }
 
 
