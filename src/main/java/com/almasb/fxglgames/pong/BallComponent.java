@@ -72,16 +72,7 @@ public class BallComponent extends Component {
     }
     }
 
-    // this is a hack:
-    // we use a physics engine, so it is possible to push the ball through a wall to outside of the screen
-    private void checkOffscreen() {
-        if (getEntity().getBoundingBoxComponent().isOutside(getGameScene().getViewport().getVisibleArea())) {
-            physics.overwritePosition(new Point2D(
-                    getAppWidth() / 2,
-                    getAppHeight() / 2
-            ));
-        }
-    }
+
 
     public void slowDown() {
         if (!isSlowedDown) {
@@ -97,5 +88,14 @@ public class BallComponent extends Component {
         }
     }
 
-    
+        // this is a hack:
+    // we use a physics engine, so it is possible to push the ball through a wall to outside of the screen
+    private void checkOffscreen() {
+        if (getEntity().getBoundingBoxComponent().isOutside(getGameScene().getViewport().getVisibleArea())) {
+            physics.overwritePosition(new Point2D(
+                    getAppWidth() / 2,
+                    getAppHeight() / 2
+            ));
+        }
+    }
 }
