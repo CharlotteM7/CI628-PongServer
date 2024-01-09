@@ -51,6 +51,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -170,6 +171,8 @@ public class PongApp extends GameApplication implements MessageHandler<String> {
         vars.put("player3score", 0);
     }
 
+
+
     @Override
     protected void initGame() {
         Writers.INSTANCE.addTCPWriter(String.class, outputStream -> new MessageWriterS(outputStream));
@@ -179,6 +182,9 @@ public class PongApp extends GameApplication implements MessageHandler<String> {
 
         server.setOnConnected(connection -> {
             connection.addMessageHandlerFX(this);
+            // When a new client connects
+             UUID playerId = UUID.randomUUID(); // Assign a unique ID
+             connection.send("PLAYER_ID," + playerId.toString()); // Send ID to client
         });
 
         getGameWorld().addEntityFactory(new PongFactory());
@@ -190,7 +196,11 @@ public class PongApp extends GameApplication implements MessageHandler<String> {
         var t = new Thread(server.startTask()::run);
         t.setDaemon(true);
         t.start();
+
+     
     }
+
+
 
     @Override
     protected void initPhysics() {
@@ -296,6 +306,17 @@ public class PongApp extends GameApplication implements MessageHandler<String> {
             server.broadcast(message);
         }
 
+ 
+
+        // Check if the game should end
+    boolean endGame = geti("player1score") >= 10 || geti("player2score") >= 10 || geti("player3score") >= 10;
+    if (endGame) {
+
+        //server.broadcast(message);
+    }
+
+
+
    
     }
 
@@ -319,7 +340,7 @@ public class PongApp extends GameApplication implements MessageHandler<String> {
     }
 
 private void initGameObjects() {
-    ball = spawn("ball", getAppWidth() / 2 - 30, getAppHeight() / 2 - 30);
+    ball = spawn("ball", getAppWidth() / 2 - 30, 0);
     player1 = spawn("bat", new SpawnData(getAppWidth() / 4, getAppHeight() / 2 - 30).put("playerId", 1));
     player2 = spawn("bat", new SpawnData(3 * getAppWidth() / 4 - 20, getAppHeight() / 2 - 30).put("playerId", 2));
     player3 = spawn("bat", new SpawnData(getAppWidth() / 2 - 60 / 2, getAppHeight() - 50 - 30).put("playerId", 3));
